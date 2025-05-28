@@ -1,0 +1,46 @@
+<header *ngIf="isLoggedIn" class="app-header">
+  <div class="header-left">
+    <img src="assets/images/image.png" alt="Ascension Logo" class="header-logo">
+    <div class="header-titles">
+      <div class="title-container">
+        <h1 class="ascension-title">Ascension</h1>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="user-info" (click)="toggleProfileMenu()">
+      <img src="assets/images/user-avatar.png" alt="User" class="user-avatar">
+      <span>{{ currentUser?.name }}</span>
+      <span class="dropdown-triangle"></span>
+      
+      <div class="profile-dropdown" *ngIf="showProfileMenu">
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main [ngClass]="{'main-container': isLoggedIn, 'login-container': !isLoggedIn}">
+  <ng-container *ngIf="isLoggedIn">
+    <div class="content-area">
+      <div class="main-content">
+        <div class="patient-selection-bar" *ngIf="!isLoginPage && !isPatientsListPage">
+          <app-patient-list></app-patient-list>
+        </div>
+        <div class="router-content">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>
+    <div class="assistant-area">
+      <app-smart-assistant></app-smart-assistant>
+    </div>
+  </ng-container>
+  
+  <ng-container *ngIf="!isLoggedIn">
+    <router-outlet></router-outlet>
+  </ng-container>
+</main>

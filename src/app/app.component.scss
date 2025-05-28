@@ -1,0 +1,207 @@
+.app-header {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 40px;
+  margin-right: 15px;
+}
+
+.header-titles {
+  display: flex;
+  align-items: center;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+}
+
+.ascension-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+  margin-right: 10px;
+}
+
+.tool-title {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.9;
+  position: relative;
+  padding-left: 12px;
+}
+
+.tool-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 16px;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-triangle {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid white;
+  margin-left: 2px;
+}
+
+.user-info:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--white);
+  margin-right: 8px;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--white);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  z-index: 1000;
+  margin-top: 5px;
+  font-size: 0.9rem;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: var(--light-gray);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.dropdown-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.dropdown-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-user-name {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.dropdown-user-role {
+  font-size: 0.8rem;
+  color: var(--dark-gray);
+  text-transform: capitalize;
+}
+
+.dropdown-item {
+  padding: 8px 15px;
+  color: var(--dark-gray);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.85rem;
+}
+
+.dropdown-item:hover {
+  background-color: var(--light-gray);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--light-gray);
+  margin: 3px 0;
+  opacity: 0.7;
+}
+
+.main-container {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.content-area {
+  flex: 0 0 70%;
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.patient-selection-bar {
+  background-color: var(--light-gray);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+}
+
+.router-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.assistant-area {
+  flex: 0 0 30%;
+  background-color: var(--light-gray);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  box-sizing: border-box;
+}

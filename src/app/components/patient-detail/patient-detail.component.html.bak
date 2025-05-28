@@ -1,0 +1,252 @@
+<div class="detail-container">
+  <div *ngIf="loading" class="loading-spinner">
+    Loading patient details...
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+  
+  <div *ngIf="!loading && !error && patient" class="patient-detail">
+    <div class="patient-header">
+      <div class="patient-info">
+        <h2>{{ patient.name }}</h2>
+        <p>{{ patient.dob }} ({{ patient.age }}/{{ patient.gender }})</p>
+        <p *ngIf="patient.mrn">MRN: {{ patient.mrn }}</p>
+      </div>
+      <div class="patient-actions">
+        <button class="btn-action" (click)="checkForUpdates()">
+          <i class="fas fa-sync-alt"></i> Check for Updates
+        </button>
+        <button class="btn-action" (click)="viewHistory()">
+          <i class="fas fa-history"></i> View History
+        </button>
+        <button class="btn-action" (click)="printPatientInfo()">
+          <i class="fas fa-print"></i> Print
+        </button>
+        <button class="btn-action" (click)="openSuggestions()">
+          <i class="fas fa-lightbulb"></i> Open Suggestions
+        </button>
+      </div>
+    </div>
+
+    <div class="patient-content">
+      <!-- Background Section -->
+      <section class="section">
+        <h3 class="section-header">
+          BACKGROUND
+          <button class="btn-edit"><i class="fas fa-edit"></i> Edit</button>
+        </h3>
+        <div class="section-content">
+          <div class="suggestions-panel">
+            <h4>
+              <i class="fas fa-lightbulb"></i> Suggestions
+              <i class="fas fa-chevron-down"></i>
+            </h4>
+            <div class="suggestions-content">
+              <div class="suggestion-item">
+                Add information about patient's allergies
+              </div>
+              <div class="suggestion-item">
+                Update medication history
+              </div>
+              <div class="suggestion-item">
+                Include recent surgical procedures
+              </div>
+            </div>
+          </div>
+          
+          <div class="medical-history">
+            <h4>Past Medical History</h4>
+            <div [innerHTML]="patient.background.pastMedicalHistory"></div>
+            <button class="btn-link">Add to Background History</button>
+          </div>
+          
+          <div class="current-plan">
+            <h4>Information Leading to Current Plan of Care</h4>
+            <div [innerHTML]="patient.background.currentPlanInfo"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Assessment Section -->
+      <section class="section" [class.active]="activeSection === 'assessment'">
+        <h3 class="section-header" (click)="setActiveSection('assessment')">
+          ASSESSMENT
+          <i class="fas" [ngClass]="activeSection === 'assessment' ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+        </h3>
+        <div class="section-content" *ngIf="activeSection === 'assessment'">
+          <div class="suggestions-panel">
+            <h4>
+              <i class="fas fa-lightbulb"></i> Suggestions
+              <i class="fas fa-chevron-down"></i>
+            </h4>
+            <div class="suggestions-content">
+              <div class="suggestion-item">
+                Update vital signs
+              </div>
+              <div class="suggestion-item">
+                Document pain assessment
+              </div>
+              <div class="suggestion-item">
+                Update fall risk assessment
+              </div>
+            </div>
+          </div>
+          
+          <div class="vital-signs">
+            <h4>Recent vital signs:</h4>
+            <div class="vital-signs-grid">
+              <div class="vital-sign-item">
+                <div class="vital-sign-label">BP</div>
+                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.bp }}</div>
+              </div>
+              <div class="vital-sign-item">
+                <div class="vital-sign-label">HR</div>
+                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.hr }}</div>
+              </div>
+              <div class="vital-sign-item">
+                <div class="vital-sign-label">Temp</div>
+                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.temp }}</div>
+              </div>
+              <div class="vital-sign-item">
+                <div class="vital-sign-label">RR</div>
+                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.rr }}</div>
+              </div>
+              <div class="vital-sign-item">
+                <div class="vital-sign-label">O₂ Saturation</div>
+                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.o2Saturation }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="assessment-items">
+            <div class="assessment-item">
+              <h4>Pain level & goal:</h4>
+              <div>
+                <p>Current pain level: {{ patient.assessment.painLevel }}</p>
+                <p>Goal pain level: {{ patient.assessment.goalPainLevel }}</p>
+              </div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Abnormal/pertinent findings:</h4>
+              <div [innerHTML]="patient.assessment.abnormalFindings"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Recent PRN meds:</h4>
+              <div [innerHTML]="patient.assessment.recentPRN"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Fall rating & interventions:</h4>
+              <div [innerHTML]="patient.assessment.fallRating"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Activity:</h4>
+              <div [innerHTML]="patient.assessment.activity"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Observe wounds/dropsites:</h4>
+              <div [innerHTML]="patient.assessment.wounds"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Specimen:</h4>
+              <div [innerHTML]="patient.assessment.specimen"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>IV's:</h4>
+              <div [innerHTML]="patient.assessment.ivs"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Procedures:</h4>
+              <div [innerHTML]="patient.assessment.procedures"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>NPO/Diet:</h4>
+              <div [innerHTML]="patient.assessment.diet"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Safety precautions:</h4>
+              <div [innerHTML]="patient.assessment.safety"></div>
+            </div>
+            
+            <div class="assessment-item">
+              <h4>Lab results:</h4>
+              <div [innerHTML]="patient.assessment.labResults"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommendations Section -->
+      <section class="section" [class.active]="activeSection === 'recommendations'">
+        <h3 class="section-header" (click)="setActiveSection('recommendations')">
+          RECOMMENDATIONS
+          <i class="fas" [ngClass]="activeSection === 'recommendations' ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+        </h3>
+        <div class="section-content" *ngIf="activeSection === 'recommendations'">
+          <div class="suggestions-panel">
+            <h4>
+              <i class="fas fa-lightbulb"></i> Suggestions
+              <i class="fas fa-chevron-down"></i>
+            </h4>
+            <div class="suggestions-content">
+              <div class="suggestion-item">
+                Update shift goals
+              </div>
+              <div class="suggestion-item">
+                Document discharge planning
+              </div>
+            </div>
+          </div>
+          
+          <div class="recommendation-item">
+            <h4>Goal For The Shift</h4>
+            <div [innerHTML]="patient.recommendations.shiftGoal"></div>
+          </div>
+          
+          <div class="recommendation-item">
+            <h4>Plan For The Day</h4>
+            <div [innerHTML]="patient.recommendations.dayPlan"></div>
+          </div>
+          
+          <div class="recommendation-item">
+            <h4>Discharge Plan</h4>
+            <div [innerHTML]="patient.recommendations.dischargePlan"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Nurses' Notes Section -->
+      <section class="section" [class.active]="activeSection === 'notes'">
+        <h3 class="section-header" (click)="setActiveSection('notes')">
+          NURSES' NOTES
+          <i class="fas" [ngClass]="activeSection === 'notes' ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+        </h3>
+        <div class="section-content" *ngIf="activeSection === 'notes'">
+          <div class="notes-list">
+            <div *ngFor="let note of patient.nursesNotes" class="note-item">
+              <div class="note-header">
+                <div class="note-date">{{ note.date }} {{ note.time }}</div>
+                <div class="note-user">{{ note.user }}</div>
+              </div>
+              <div class="note-content" [innerHTML]="note.content"></div>
+            </div>
+          </div>
+          <button class="btn-primary add-note-btn">
+            <i class="fas fa-plus"></i> Add Note
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

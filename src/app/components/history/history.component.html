@@ -1,0 +1,243 @@
+<div class="history-container">
+  <div class="back-link">
+    <a (click)="backToHome()">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+  </div>
+
+  <div class="tabs">
+    <div class="tab" [class.active]="activeTab === 'today'" (click)="setActiveTab('today')">
+      Today's Revisions
+    </div>
+    <div class="tab" [class.active]="activeTab === 'previous'" (click)="setActiveTab('previous')">
+      Previous Summaries
+    </div>
+  </div>
+
+  <!-- Today's Revisions Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'today'">
+    <div *ngFor="let entry of historyEntries" class="history-entry">
+      <div class="entry-header">
+        <div class="section-title">{{entry.section}}</div>
+        <div class="time-stamp">
+          <span>{{entry.time}}</span>
+          <span>by {{entry.nurse}}</span>
+        </div>
+      </div>
+
+      <!-- Background Section Content -->
+      <div class="entry-content" *ngIf="entry.section === 'BACKGROUND'">
+        <div class="content-heading">{{entry.content.title}}</div>
+        <p>{{entry.content.text}}</p>
+      </div>
+
+      <!-- Assessment Section Content -->
+      <div class="entry-content" *ngIf="entry.section === 'ASSESSMENT'">
+        <div class="assessment-item" *ngIf="entry.content.vitalSigns">
+          <div class="content-heading">Recent vital signs:</div>
+          <div class="vital-signs">
+            <span>BP: {{entry.content.vitalSigns.bp}}</span>
+            <span>HR: {{entry.content.vitalSigns.hr}}</span>
+            <span>Temp: {{entry.content.vitalSigns.temp}}</span>
+            <span>RR: {{entry.content.vitalSigns.rr}}</span>
+            <span>O₂ Saturation: {{entry.content.vitalSigns.o2}}</span>
+          </div>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.painLevel">
+          <div class="content-heading">Pain level & goal:</div>
+          <div>
+            <strong>Current pain level:</strong> {{entry.content.painLevel.current}}
+          </div>
+          <div>
+            <strong>Goal pain level:</strong> {{entry.content.painLevel.goal}}
+          </div>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.findings">
+          <div class="content-heading">Abnormal/pertinent findings:</div>
+          <p>{{entry.content.findings}}</p>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.activity">
+          <div class="content-heading">Activity:</div>
+          <p>{{entry.content.activity}}</p>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.specimen">
+          <div class="content-heading">Specimen:</div>
+          <p>{{entry.content.specimen}}</p>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.ivs">
+          <div class="content-heading">IV's:</div>
+          <p>{{entry.content.ivs}}</p>
+        </div>
+
+        <div class="assessment-item" *ngIf="entry.content.procedures">
+          <div class="content-heading">Procedures:</div>
+          <p>{{entry.content.procedures}}</p>
+        </div>
+      </div>
+
+      <!-- Recommendations Section Content -->
+      <div class="entry-content" *ngIf="entry.section === 'RECOMMENDATIONS'">
+        <div class="recommendation-item" *ngIf="entry.content.shiftGoal">
+          <div class="content-heading">Goal for The Shift:</div>
+          <p>{{entry.content.shiftGoal}}</p>
+        </div>
+
+        <div class="recommendation-item" *ngIf="entry.content.dayPlan">
+          <div class="content-heading">Plan For The Day:</div>
+          <p>{{entry.content.dayPlan}}</p>
+        </div>
+
+        <div class="recommendation-item" *ngIf="entry.content.dischargePlan">
+          <div class="content-heading">Discharge Plan:</div>
+          <div>
+            <strong>Destination:</strong> {{entry.content.dischargePlan.destination}}
+          </div>
+          <div>
+            <strong>Needs:</strong> {{entry.content.dischargePlan.needs}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Previous Summaries Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'previous'">
+    <div class="expand-all">
+      <button (click)="expandAllSummaries()">
+        <i class="fas fa-expand-alt"></i> Open All Summaries
+      </button>
+    </div>
+
+    <div *ngFor="let summary of summaries; let i = index" class="summary-item">
+      <div class="summary-header" (click)="toggleSummary(i)">
+        <div class="summary-date">
+          <i class="fas" [ngClass]="expandedSummaries[summary.date] ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+          {{summary.date}} • {{summary.time}}
+        </div>
+      </div>
+
+      <div class="summary-content" *ngIf="expandedSummaries[summary.date]">
+        <!-- Background Section -->
+        <div class="summary-section" *ngIf="summary.content?.background">
+          <h3 class="section-title">BACKGROUND</h3>
+          <div class="section-content">
+            <h4>{{summary.content.background.title}}</h4>
+            <p>{{summary.content.background.text}}</p>
+          </div>
+
+          <div class="section-content" *ngIf="summary.content?.currentPlan">
+            <h4>{{summary.content.currentPlan.title}}</h4>
+            <p>{{summary.content.currentPlan.text}}</p>
+          </div>
+        </div>
+
+        <!-- Assessment Section -->
+        <div class="summary-section" *ngIf="summary.assessment">
+          <h3 class="section-title">ASSESSMENT</h3>
+          
+          <div class="assessment-item" *ngIf="summary.assessment.vitalSigns">
+            <h4>Recent vital signs:</h4>
+            <div class="vital-signs">
+              <span>BP: {{summary.assessment.vitalSigns.bp}}</span>
+              <span>HR: {{summary.assessment.vitalSigns.hr}}</span>
+              <span>Temp: {{summary.assessment.vitalSigns.temp}}</span>
+              <span>RR: {{summary.assessment.vitalSigns.rr}}</span>
+              <span>O₂ Saturation: {{summary.assessment.vitalSigns.o2}}</span>
+            </div>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.painLevel">
+            <h4>Pain level & goal:</h4>
+            <div>
+              <strong>Current pain level:</strong> {{summary.assessment.painLevel.current}}
+            </div>
+            <div>
+              <strong>Goal pain level:</strong> {{summary.assessment.painLevel.goal}}
+            </div>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.findings">
+            <h4>Abnormal/pertinent findings:</h4>
+            <p>{{summary.assessment.findings}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.prnMeds">
+            <h4>Recent PRN meds:</h4>
+            <p>{{summary.assessment.prnMeds}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.fallRating">
+            <h4>Fall rating & expectations:</h4>
+            <p>{{summary.assessment.fallRating}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.activity">
+            <h4>Activity:</h4>
+            <p>{{summary.assessment.activity}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.wounds">
+            <h4>Observe wounds/drips/site:</h4>
+            <p>{{summary.assessment.wounds}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.specimen">
+            <h4>Specimen:</h4>
+            <p>{{summary.assessment.specimen}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.ivs">
+            <h4>IV's:</h4>
+            <p>{{summary.assessment.ivs}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.procedures">
+            <h4>Procedures:</h4>
+            <p>{{summary.assessment.procedures}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.diet">
+            <h4>NPO/diet:</h4>
+            <p>{{summary.assessment.diet}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.safety">
+            <h4>Safety precautions:</h4>
+            <p>{{summary.assessment.safety}}</p>
+          </div>
+
+          <div class="assessment-item" *ngIf="summary.assessment.labResults">
+            <h4>Lab results:</h4>
+            <p>{{summary.assessment.labResults}}</p>
+          </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="summary-section" *ngIf="summary.recommendations">
+          <h3 class="section-title">RECOMMENDATIONS</h3>
+          
+          <div class="recommendation-item">
+            <h4>Goal For The Shift</h4>
+            <p>{{summary.recommendations.shiftGoal}}</p>
+          </div>
+
+          <div class="recommendation-item">
+            <h4>Plan For The Day</h4>
+            <p>{{summary.recommendations.dayPlan}}</p>
+          </div>
+
+          <div class="recommendation-item">
+            <h4>Discharge Plan</h4>
+            <div><strong>Destination:</strong> {{summary.recommendations.dischargePlan.destination}}</div>
+            <div><strong>Needs:</strong> {{summary.recommendations.dischargePlan.needs}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,269 @@
+<div class="smart-assistant-container">
+  <!-- Default view - only shown when not expanded -->
+  <div class="smart-assistant-panel" *ngIf="!isExpanded">
+    <button class="assistant-header" (click)="toggleExpand()">
+      <i class="fas fa-comment-dots"></i>
+      <span>Smart Assistant</span>
+    </button>
+    
+    <div class="assistant-body">
+      <div class="assistant-info">
+        <div class="info-icon"><i class="fas fa-info-circle"></i></div>
+        <div class="info-text">
+          <p>Chat with the AI assistant to quickly find or summarize information about your patient.</p>
+        </div>
+      </div>
+      
+      <div class="assistant-jump">
+        <p>Jump to:</p>
+        <ul>
+          <li><a href="#">1) Patient Information</a></li>
+          <li><a href="#">2) Background</a></li>
+          <li><a href="#">3) Assessment</a></li>
+          <li><a href="#">4) Recommendations</a></li>
+          <li><a href="#">5) Notes</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expanded chat interface - only shown when expanded and modal is not open -->
+  <div class="chat-panel" *ngIf="isExpanded && !showChatModal">
+    <div class="chat-header">
+      <div class="header-content">
+        <i class="fas fa-comment-dots"></i>
+        <span>Smart Assistant</span>
+      </div>
+      <div class="header-actions">
+        <button class="delete-button" (click)="clearChat()" title="Clear chat history">
+          <i class="fas fa-trash"></i>
+        </button>
+        <button class="expand-button" (click)="openChatModal()" title="Open in full screen">
+          <i class="fas fa-expand-alt"></i>
+        </button>
+        <button class="close-button" (click)="toggleExpand()" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-body">
+      <!-- Show no patient selected message when no patient is selected -->
+      <div *ngIf="!currentPatientId" class="no-patient-message">
+        <div class="message-icon"><i class="fas fa-user-slash"></i></div>
+        <p>Please select a patient to use the Smart Assistant for patient-specific questions.</p>
+      </div>
+      
+      <!-- Show patient-specific content when a patient is selected -->
+      <div *ngIf="currentPatientId">
+        <!-- Show prompt and quick options only when there are no messages -->
+        <div *ngIf="chatMessages.length === 0">
+          <div class="chat-prompt">
+            <p>Type a question or select a quick option:</p>
+          </div>
+          
+          <div class="quick-options vertical">
+            <div class="option" (click)="selectQuickOption('What was the patient admitted for?')">
+              <div class="option-icon"><i class="fas fa-user"></i></div>
+              <div class="option-text">Patient details for admission</div>
+            </div>
+            
+            <div class="option" (click)="selectQuickOption('What medications is the patient taking?')">
+              <div class="option-icon"><i class="fas fa-pills"></i></div>
+              <div class="option-text">Meds - current medications</div>
+            </div>
+            
+            <div class="option" (click)="selectQuickOption('What are the patient\'s latest vital signs?')">
+              <div class="option-icon"><i class="fas fa-heartbeat"></i></div>
+              <div class="option-text">Vitals - latest vital signs</div>
+            </div>
+            
+            <div class="option" (click)="selectQuickOption('What are the recent provider orders?')">
+              <div class="option-icon"><i class="fas fa-clipboard-list"></i></div>
+              <div class="option-text">Orders - recent provider orders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Chat messages display - only shown when a patient is selected -->
+      <div *ngIf="currentPatientId && chatMessages.length > 0" class="expanded-chat-messages" #chatContainer>
+        <div *ngFor="let message of chatMessages" class="message" [ngClass]="{'user-message': message.type === 'user', 'assistant-message': message.type === 'assistant'}">
+          <div class="message-content">
+            <p *ngIf="message.type === 'user'">{{message.content}}</p>
+            <div *ngIf="message.type === 'assistant'" class="assistant-response">
+              <p>{{message.content}}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div *ngIf="loading" class="message assistant-message loading">
+          <div class="message-content">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="typing-label">AI assistant is thinking...</div>
+          </div>
+        </div>
+      </div>
+      
+      <form (ngSubmit)="sendQuestion()" class="chat-input-form">
+        <div class="chat-input">
+          <input type="text" [(ngModel)]="question" name="question" placeholder="Ask a question about the patient..." (keyup.enter)="sendQuestion()" [disabled]="!currentPatientId">
+          <button type="submit" class="send-button" [disabled]="!currentPatientId"><i class="fas fa-arrow-right"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Chat Modal - only shown when modal is open -->
+  <div class="chat-modal-overlay" *ngIf="showChatModal" (click)="closeChatModal($event)">
+    <div class="chat-modal">
+      <!-- Modal header with title and actions -->
+      <div class="modal-header">
+        <div class="header-left">
+          <i class="fas fa-comment-dots"></i>
+          <span>Smart Assistant</span>
+        </div>
+        <div class="header-right">
+          <button class="action-button trash" (click)="clearChat()" title="Clear conversation">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="action-button edit" (click)="editLastMessage()" title="Edit last message">
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+          <button class="action-button close" (click)="closeChatModal($event)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Main content container -->
+      <div class="modal-body">
+        <!-- Left sidebar with suggestions -->
+        <div class="sidebar">
+          <div class="sidebar-header">Suggestions</div>
+          
+          <div class="sidebar-item">
+            <div class="item-icon admission">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="item-content">
+              <div class="item-title">admission</div>
+              <div class="item-subtitle">Reason for admission</div>
+            </div>
+          </div>
+          
+          <div class="sidebar-item">
+            <div class="item-icon meds">
+              <i class="fas fa-pills"></i>
+            </div>
+            <div class="item-content">
+              <div class="item-title">meds</div>
+              <div class="item-subtitle">Current medications</div>
+            </div>
+          </div>
+          
+          <div class="sidebar-item">
+            <div class="item-icon vitals">
+              <i class="fas fa-heartbeat"></i>
+            </div>
+            <div class="item-content">
+              <div class="item-title">vitals</div>
+              <div class="item-subtitle">latest vitals</div>
+            </div>
+          </div>
+          
+          <div class="sidebar-item">
+            <div class="item-icon labs">
+              <i class="fas fa-flask"></i>
+            </div>
+            <div class="item-content">
+              <div class="item-title">labs</div>
+              <div class="item-subtitle">latest lab results</div>
+            </div>
+          </div>
+          
+          <div class="sidebar-item">
+            <div class="item-icon orders">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="item-content">
+              <div class="item-title">orders</div>
+              <div class="item-subtitle">recent provider orders</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Main content area -->
+        <div class="main-content">
+          <!-- Chat messages container -->
+          <div class="chat-messages">
+            <!-- No patient selected message -->
+            <div *ngIf="!currentPatientId" class="no-patient-message modal-no-patient">
+              <div class="message-icon"><i class="fas fa-user-slash"></i></div>
+              <p>Please select a patient to use the Smart Assistant for patient-specific questions.</p>
+            </div>
+            
+            <!-- Patient selected content -->
+            <div *ngIf="currentPatientId">
+              <!-- Show placeholder message if no chat history -->
+              <div *ngIf="chatMessages.length === 0" class="empty-chat-message">
+                <p>No conversation history. Ask a question to get started.</p>
+              </div>
+              
+              <!-- Dynamic chat messages -->
+              <ng-container *ngFor="let message of chatMessages; let i = index">
+                <!-- Add timestamp divider between messages with significant time difference -->
+                <div *ngIf="i === 0 || shouldShowTimestamp(message, chatMessages[i-1])" class="timestamp-divider">
+                  {{ formatTime(message.timestamp) }}
+                </div>
+                
+                <!-- User message -->
+                <div *ngIf="message.type === 'user'" class="message user-message">
+                  <div class="message-content">{{ message.content }}</div>
+                </div>
+                
+                <!-- Assistant message -->
+                <div *ngIf="message.type === 'assistant'" class="message assistant-message">
+                  <div class="message-content">
+                    <p [innerHTML]="message.content"></p>
+                    <div class="copy-action" (click)="copyToClipboard(message.content)">
+                      <i class="fas fa-copy"></i> Copy
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              
+              <!-- Loading indicator -->
+              <div *ngIf="loading" class="message assistant-message loading">
+                <div class="message-content">
+                  <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <div class="typing-label">AI assistant is thinking...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <form (ngSubmit)="sendQuestion()" class="input-group-form">
+              <div class="input-group">
+                <input type="text" [(ngModel)]="question" name="question" placeholder="Ask a question about the patient" (keyup.enter)="sendQuestion()" [disabled]="!currentPatientId">
+                <button type="submit" class="submit-button" [disabled]="!currentPatientId">
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
