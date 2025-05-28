@@ -1,4 +1,4 @@
-# Ascension Nurse Handoff Tool
+# Longitudinal Patient Record
 
 A web-based application for nurses to manage patient handoffs, view patient details, and use a smart assistant for clinical questions.
 

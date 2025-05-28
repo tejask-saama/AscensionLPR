@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, of, catchError } from 'rxjs';
-import { Patient, PatientDetail, NurseNote } from '../models/patient.model';
+import { Patient, PatientDetail, NurseNote, EncounterInfo } from '../models/patient.model';
 import { environment } from '../../environments/environment';
 
 /**
@@ -134,7 +134,43 @@ export class PatientService {
               // Background section
               background: {
                 pastMedicalHistory: this.extractMedicalHistory(patientData, responseText),
-                currentPlanInfo: this.extractCurrentPlan(patientData, responseText)
+                currentPlanInfo: this.extractCurrentPlan(patientData, responseText),
+                allergies: this.extractAllergies(patientData, responseText),
+                immunizations: this.extractImmunizations(patientData, responseText),
+                medicationHistory: this.extractMedications(patientData, responseText)
+              },
+              
+              // Medical Timeline section
+              medicalTimeline: {
+                encounters: this.extractEncounters(patientData, responseText)
+              },
+              
+              // Current Care Plan section
+              currentCarePlan: {
+                activePlan: {
+                  title: this.extractCarePlanTitle(patientData, responseText),
+                  description: this.extractCarePlanDescription(patientData, responseText),
+                  status: this.extractCarePlanStatus(patientData, responseText)
+                },
+                goals: this.extractGoals(patientData, responseText),
+                vitalSigns: {
+                  bp: this.extractVitalSign(patientData, 'bp', '120/80'),
+                  temp: this.extractVitalSign(patientData, 'temp', '98.6'),
+                  rr: this.extractVitalSign(patientData, 'rr', '16'),
+                  hr: this.extractVitalSign(patientData, 'hr', '72'),
+                  o2Saturation: this.extractVitalSign(patientData, 'o2', '98%')
+                },
+                currentMedications: this.extractCurrentMedications(patientData, responseText)
+              },
+              
+              // Risk Assessment section
+              riskAssessment: {
+                cardiovascularRisk: this.extractCardiovascularRisk(patientData, responseText),
+                complications: this.extractComplications(patientData, responseText),
+                fallRisk: {
+                  factors: this.extractRiskAssessment(patientData, 'fall', responseText),
+                  recommendations: this.extractRiskRecommendations(patientData, 'fall', responseText)
+                }
               },
               
               // Assessment section
@@ -163,6 +199,12 @@ export class PatientService {
               
               // Recommendations section
               recommendations: {
+                followUpSchedule: {
+                  primaryCare: this.extractFollowUp(patientData, 'primary', responseText),
+                  specialists: this.extractSpecialists(patientData, responseText)
+                },
+                preventiveCare: this.extractPreventiveCare(patientData, responseText),
+                lifestyle: this.extractLifestyleRecommendations(patientData, responseText),
                 shiftGoal: 'Maintain stable vital signs',
                 dayPlan: 'Continue current treatment plan',
                 dischargePlan: 'Pending physician assessment'
@@ -419,6 +461,150 @@ export class PatientService {
     return notes;
   }
   
+  // Extraction methods for the new fields from JOHN_DOE_Template.md
+  private extractAllergies(patientData: any, responseText: string): string {
+    if (patientData && patientData.allergies && patientData.allergies.length > 0) {
+      return patientData.allergies.map((allergy: any) => 
+        `${allergy.substance} (${allergy.severity})`
+      ).join('\n');
+    }
+    return 'No known allergies';
+  }
+  
+  private extractImmunizations(patientData: any, responseText: string): string {
+    if (patientData && patientData.immunizations && patientData.immunizations.length > 0) {
+      return patientData.immunizations.map((immunization: any) => 
+        `${immunization.name} (${immunization.date})`
+      ).join('\n');
+    }
+    return 'No immunization records available';
+  }
+  
+  private extractEncounters(patientData: any, responseText: string): EncounterInfo[] {
+    const encounters: EncounterInfo[] = [];
+    if (patientData && patientData.encounters && patientData.encounters.length > 0) {
+      return patientData.encounters.map((encounter: any) => ({
+        date: encounter.date || 'Unknown date',
+        type: encounter.type || 'Office visit',
+        encounterId: encounter.id || 'Unknown ID',
+        vitalSigns: encounter.vital_signs || '',
+        symptoms: encounter.symptoms || '',
+        diagnosis: encounter.diagnosis || '',
+        assessment: encounter.assessment || '',
+        plan: encounter.plan || ''
+      }));
+    }
+    // Return a default encounter if none are found
+    return [{
+      date: new Date().toISOString().split('T')[0],
+      type: 'Initial visit',
+      encounterId: 'ENC001',
+      vitalSigns: 'BP: 120/80, HR: 72, Temp: 98.6°F',
+      symptoms: 'No symptoms reported',
+      assessment: 'Healthy patient',
+      plan: 'Continue current medications'
+    }];
+  }
+  
+  private extractCarePlanTitle(patientData: any, responseText: string): string {
+    if (patientData && patientData.care_plan && patientData.care_plan.title) {
+      return patientData.care_plan.title;
+    }
+    return 'Maintenance Care Plan';
+  }
+  
+  private extractCarePlanDescription(patientData: any, responseText: string): string {
+    if (patientData && patientData.care_plan && patientData.care_plan.description) {
+      return patientData.care_plan.description;
+    }
+    return 'Standard care plan for maintaining health and managing existing conditions';
+  }
+  
+  private extractCarePlanStatus(patientData: any, responseText: string): string {
+    if (patientData && patientData.care_plan && patientData.care_plan.status) {
+      return patientData.care_plan.status;
+    }
+    return 'Active';
+  }
+  
+  private extractGoals(patientData: any, responseText: string): any[] {
+    if (patientData && patientData.goals && patientData.goals.length > 0) {
+      return patientData.goals.map((goal: any) => ({
+        description: goal.description || 'Goal description not available',
+        startDate: goal.start_date || new Date().toISOString().split('T')[0],
+        targetDate: goal.target_date || new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+        status: goal.status || 'In progress'
+      }));
+    }
+    // Return a default goal if none are found
+    return [{
+      description: 'Maintain stable vital signs',
+      startDate: new Date().toISOString().split('T')[0],
+      targetDate: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+      status: 'In progress'
+    }];
+  }
+  
+  private extractCurrentMedications(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.medications && patientData.medications.length > 0) {
+      return patientData.medications.map((med: any) => 
+        `${med.name} ${med.dosage} (${med.purpose || 'Unknown purpose'})`
+      );
+    }
+    return ['No current medications'];
+  }
+  
+  private extractCardiovascularRisk(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.risk_factors && patientData.risk_factors.cardiovascular) {
+      return patientData.risk_factors.cardiovascular;
+    }
+    return ['No cardiovascular risk factors identified'];
+  }
+  
+  private extractComplications(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.complications && patientData.complications.length > 0) {
+      return patientData.complications;
+    }
+    return ['No complications identified'];
+  }
+  
+  private extractRiskRecommendations(patientData: any, riskType: string, responseText: string): string {
+    if (patientData && patientData.risk_recommendations && patientData.risk_recommendations[riskType]) {
+      return patientData.risk_recommendations[riskType];
+    }
+    return 'Standard precautions recommended';
+  }
+  
+  private extractFollowUp(patientData: any, careType: string, responseText: string): string {
+    if (patientData && patientData.follow_up && patientData.follow_up[careType]) {
+      return patientData.follow_up[careType];
+    }
+    return 'Follow up as needed';
+  }
+  
+  private extractSpecialists(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.specialists && patientData.specialists.length > 0) {
+      return patientData.specialists.map((specialist: any) => 
+        `${specialist.type}: ${specialist.name} (${specialist.follow_up || 'as needed'})`
+      );
+    }
+    return ['No specialist follow-ups scheduled'];
+  }
+  
+  private extractPreventiveCare(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.preventive_care && patientData.preventive_care.length > 0) {
+      return patientData.preventive_care;
+    }
+    return ['Annual physical examination', 'Age-appropriate screenings'];
+  }
+  
+  private extractLifestyleRecommendations(patientData: any, responseText: string): string[] {
+    if (patientData && patientData.lifestyle_recommendations && patientData.lifestyle_recommendations.length > 0) {
+      return patientData.lifestyle_recommendations;
+    }
+    return ['Regular exercise', 'Balanced diet', 'Adequate sleep', 'Stress management'];
+  }
+  
   // Default patient detail for when the API fails
   private getDefaultPatientDetail(id: number, patientId: string): PatientDetail {
     // Get the patient name and gender from the patientId (P001, P002, etc.)
@@ -452,10 +638,59 @@ export class PatientService {
       // Background information
       background: {
         pastMedicalHistory: 'No significant medical history',
-        currentPlanInfo: 'Current plan information not available'
+        currentPlanInfo: 'Current plan information not available',
+        allergies: 'No known allergies',
+        immunizations: 'No immunization records available',
+        medicationHistory: 'No medication history available'
       },
       
-      // Assessment information
+      // Medical Timeline section
+      medicalTimeline: {
+        encounters: [{
+          date: new Date().toISOString().split('T')[0],
+          type: 'Initial visit',
+          encounterId: 'ENC001',
+          vitalSigns: 'BP: 120/80, HR: 72, Temp: 98.6°F',
+          symptoms: 'No symptoms reported',
+          assessment: 'Healthy patient',
+          plan: 'Continue current medications'
+        }]
+      },
+      
+      // Current Care Plan section
+      currentCarePlan: {
+        activePlan: {
+          title: 'Maintenance Care Plan',
+          description: 'Standard care plan for maintaining health and managing existing conditions',
+          status: 'Active'
+        },
+        goals: [{
+          description: 'Maintain stable vital signs',
+          startDate: new Date().toISOString().split('T')[0],
+          targetDate: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+          status: 'In progress'
+        }],
+        vitalSigns: {
+          bp: '120/80',
+          temp: '98.6',
+          rr: '16',
+          hr: '72',
+          o2Saturation: '98%'
+        },
+        currentMedications: ['No current medications']
+      },
+      
+      // Risk Assessment section
+      riskAssessment: {
+        cardiovascularRisk: ['No cardiovascular risk factors identified'],
+        complications: ['No complications identified'],
+        fallRisk: {
+          factors: 'Low risk',
+          recommendations: 'Standard precautions recommended'
+        }
+      },
+      
+      // Assessment information (keeping for backward compatibility)
       assessment: {
         vitalSigns: {
           bp: '120/80',
@@ -479,8 +714,14 @@ export class PatientService {
         labResults: 'No recent lab results'
       },
       
-      // Recommendations
+      // Recommendations section
       recommendations: {
+        followUpSchedule: {
+          primaryCare: 'Follow up as needed',
+          specialists: ['No specialist follow-ups scheduled']
+        },
+        preventiveCare: ['Annual physical examination', 'Age-appropriate screenings'],
+        lifestyle: ['Regular exercise', 'Balanced diet', 'Adequate sleep', 'Stress management'],
         shiftGoal: 'Maintain stable vital signs',
         dayPlan: 'Continue current treatment plan',
         dischargePlan: 'Pending physician assessment'

@@ -69,6 +69,24 @@
             <button class="btn-link">Add to Background History</button>
           </div>
           
+          <div class="allergies">
+            <h4>Allergies</h4>
+            <p class="section-description">Known allergies and reactions.</p>
+            <div [innerHTML]="patient.background.allergies"></div>
+          </div>
+          
+          <div class="immunizations">
+            <h4>Immunizations</h4>
+            <p class="section-description">Vaccination history.</p>
+            <div [innerHTML]="patient.background.immunizations"></div>
+          </div>
+          
+          <div class="medication-history">
+            <h4>Medication History</h4>
+            <p class="section-description">Previous and current medications.</p>
+            <div [innerHTML]="patient.background.medicationHistory"></div>
+          </div>
+          
           <div class="current-plan">
             <h4>Information Leading to Current Plan of Care</h4>
             <p class="section-description">Includes presenting symptoms, ED findings, diagnostic imaging, progression since last admission, and consults.</p>
@@ -77,11 +95,51 @@
         </div>
       </section>
 
-      <!-- Section 3: Assessment -->
+      <!-- Section 3: Medical Timeline -->
       <section class="section">
         <h3 class="section-header">
-          ASSESSMENT
-          <i class="fas fa-edit edit-icon" (click)="editSection('assessment', $event)"></i>
+          MEDICAL TIMELINE
+          <i class="fas fa-edit edit-icon" (click)="editSection('medicalTimeline', $event)"></i>
+        </h3>
+        <div class="section-content">
+          <div *ngFor="let encounter of patient.medicalTimeline.encounters" class="encounter-item">
+            <h4>{{ encounter.date }}: {{ encounter.type }} ({{ encounter.encounterId }})</h4>
+            <div *ngIf="encounter.vitalSigns" class="encounter-detail">
+              <strong>Vital Signs:</strong> {{ encounter.vitalSigns }}
+            </div>
+            <div *ngIf="encounter.symptoms" class="encounter-detail">
+              <strong>Symptoms:</strong> {{ encounter.symptoms }}
+            </div>
+            <div *ngIf="encounter.diagnosis" class="encounter-detail">
+              <strong>Diagnosis:</strong> {{ encounter.diagnosis }}
+            </div>
+            <div *ngIf="encounter.assessment" class="encounter-detail">
+              <strong>Assessment:</strong> {{ encounter.assessment }}
+            </div>
+            <div *ngIf="encounter.plan" class="encounter-detail">
+              <strong>Plan:</strong> {{ encounter.plan }}
+            </div>
+            <div *ngIf="encounter.procedures" class="encounter-detail">
+              <strong>Procedures:</strong> {{ encounter.procedures }}
+            </div>
+            <div *ngIf="encounter.hospitalCourse" class="encounter-detail">
+              <strong>Hospital Course:</strong> {{ encounter.hospitalCourse }}
+            </div>
+            <div *ngIf="encounter.imaging" class="encounter-detail">
+              <strong>Imaging:</strong> {{ encounter.imaging }}
+            </div>
+            <div *ngIf="encounter.dischargePlan" class="encounter-detail">
+              <strong>Discharge Plan:</strong> {{ encounter.dischargePlan }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Assessment -->
+      <section class="section">
+        <h3 class="section-header">
+          CURRENT CARE PLAN
+          <i class="fas fa-edit edit-icon" (click)="editSection('currentCarePlan', $event)"></i>
         </h3>
         <div class="section-content">
           <div class="suggestions-panel">
@@ -102,64 +160,143 @@
             </div>
           </div>
           
+          <!-- Active Care Plan -->
+          <div class="active-care-plan">
+            <h4>Active Care Plan</h4>
+            <div class="care-plan-detail">
+              <strong>Title:</strong> {{ patient.currentCarePlan.activePlan.title }}
+            </div>
+            <div class="care-plan-detail">
+              <strong>Description:</strong> {{ patient.currentCarePlan.activePlan.description }}
+            </div>
+            <div class="care-plan-detail">
+              <strong>Status:</strong> {{ patient.currentCarePlan.activePlan.status }}
+            </div>
+          </div>
+          
+          <!-- Current Goals -->
+          <div class="current-goals">
+            <h4>Current Goals</h4>
+            <div *ngFor="let goal of patient.currentCarePlan.goals" class="goal-item">
+              <div class="goal-detail"><strong>Goal:</strong> {{ goal.description }}</div>
+              <div class="goal-detail"><strong>Start Date:</strong> {{ goal.startDate }}</div>
+              <div class="goal-detail"><strong>Target Date:</strong> {{ goal.targetDate }}</div>
+              <div class="goal-detail"><strong>Status:</strong> {{ goal.status }}</div>
+            </div>
+          </div>
+          
+          <!-- Recent Vital Signs -->
           <div class="vital-signs">
             <h4>Recent Vital Signs</h4>
             <div class="vital-signs-grid">
               <div class="vital-sign-item">
                 <div class="vital-sign-label">BP</div>
-                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.bp }}</div>
+                <div class="vital-sign-value">{{ patient.currentCarePlan.vitalSigns.bp }}</div>
               </div>
               <div class="vital-sign-item">
                 <div class="vital-sign-label">HR</div>
-                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.hr }}</div>
+                <div class="vital-sign-value">{{ patient.currentCarePlan.vitalSigns.hr }}</div>
               </div>
               <div class="vital-sign-item">
                 <div class="vital-sign-label">Temp</div>
-                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.temp }}</div>
+                <div class="vital-sign-value">{{ patient.currentCarePlan.vitalSigns.temp }}</div>
               </div>
               <div class="vital-sign-item">
                 <div class="vital-sign-label">RR</div>
-                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.rr }}</div>
+                <div class="vital-sign-value">{{ patient.currentCarePlan.vitalSigns.rr }}</div>
               </div>
               <div class="vital-sign-item">
-                <div class="vital-sign-label">SpO2</div>
-                <div class="vital-sign-value">{{ patient.assessment.vitalSigns.o2Saturation }}</div>
+                <div class="vital-sign-label">O2</div>
+                <div class="vital-sign-value">{{ patient.currentCarePlan.vitalSigns.o2Saturation }}</div>
               </div>
             </div>
           </div>
           
-          <div class="assessment-items">
-            <div class="assessment-item">
-              <h4>Pain Level & Goal</h4>
-              <div>
-                <p>Current Pain Level: {{ patient.assessment.painLevel }}</p>
-                <p>Goal Pain Level: {{ patient.assessment.goalPainLevel }}</p>
+          <!-- Current Medications -->
+          <div class="current-medications">
+            <h4>Current Medications</h4>
+            <ul>
+              <li *ngFor="let medication of patient.currentCarePlan.currentMedications">{{ medication }}</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Risk Assessment Section -->
+      <section class="section">
+        <h3 class="section-header">
+          RISK ASSESSMENT
+          <i class="fas fa-edit edit-icon" (click)="editSection('riskAssessment', $event)"></i>
+        </h3>
+        <div class="section-content">
+          <!-- Cardiovascular Risk -->
+          <div class="cardiovascular-risk">
+            <h4>Cardiovascular Risk</h4>
+            <ul>
+              <li *ngFor="let risk of patient.riskAssessment.cardiovascularRisk">{{ risk }}</li>
+            </ul>
+          </div>
+          
+          <!-- Condition-Specific Complications -->
+          <div class="complications">
+            <h4>Condition-Specific Complications</h4>
+            <ul>
+              <li *ngFor="let complication of patient.riskAssessment.complications">{{ complication }}</li>
+            </ul>
+          </div>
+          
+          <!-- Fall Risk -->
+          <div class="fall-risk">
+            <h4>Fall Risk</h4>
+            <div class="risk-detail">
+              <strong>Risk Factors:</strong> {{ patient.riskAssessment.fallRisk.factors }}
+            </div>
+            <div class="risk-detail">
+              <strong>Recommendations:</strong> {{ patient.riskAssessment.fallRisk.recommendations }}
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Original Assessment Section (keeping for backward compatibility) -->
+      <section class="section">
+        <h3 class="section-header">
+          ASSESSMENT
+          <i class="fas fa-edit edit-icon" (click)="editSection('assessment', $event)"></i>
+        </h3>
+        <div class="section-content">
+          <div class="pain-assessment">
+            <h4>Pain Assessment</h4>
+            <div class="pain-grid">
+              <div class="pain-item">
+                <div class="pain-label">Current</div>
+                <div class="pain-value">{{ patient.assessment.painLevel }}</div>
+              </div>
+              <div class="pain-item">
+                <div class="pain-label">Goal</div>
+                <div class="pain-value">{{ patient.assessment.goalPainLevel }}</div>
               </div>
             </div>
-            
-            <div class="assessment-item">
-              <h4>Abnormal / Pertinent Findings</h4>
-              <p class="section-description">Narrative of abnormal clinical findings (physical, labs, imaging)</p>
-              <div [innerHTML]="patient.assessment.abnormalFindings"></div>
-            </div>
-            
-            <div class="assessment-item">
-              <h4>Recent PRN Medications</h4>
-              <div [innerHTML]="patient.assessment.recentPRN"></div>
-            </div>
-            
-            <div class="assessment-item">
-              <h4>Fall Risk & Expectations</h4>
-              <div [innerHTML]="patient.assessment.fallRisk"></div>
-            </div>
-            
+          </div>
+          
+          <div class="abnormal-findings">
+            <h4>Abnormal Findings</h4>
+            <div [innerHTML]="patient.assessment.abnormalFindings"></div>
+          </div>
+          
+          <div class="recent-prn">
+            <h4>Recent PRN Medications</h4>
+            <div [innerHTML]="patient.assessment.recentPRN"></div>
+          </div>
+          
+          <div class="assessment-grid">
             <div class="assessment-item">
               <h4>Activity</h4>
               <div [innerHTML]="patient.assessment.activity"></div>
             </div>
             
             <div class="assessment-item">
-              <h4>Observe Wounds / Drugs / Site</h4>
+              <h4>Observe Wounds / Drains / Site</h4>
               <div [innerHTML]="patient.assessment.wounds"></div>
             </div>
             
@@ -187,17 +324,16 @@
               <h4>Safety Precautions</h4>
               <div [innerHTML]="patient.assessment.safety"></div>
             </div>
-            
-            <div class="assessment-item">
-              <h4>Lab Results</h4>
-              <p class="section-description">See abnormal/pertinent findings or list separately</p>
-              <div [innerHTML]="patient.assessment.labResults"></div>
-            </div>
+          </div>
+          
+          <div class="lab-results">
+            <h4>Lab Results</h4>
+            <div [innerHTML]="patient.assessment.labResults"></div>
           </div>
         </div>
       </section>
 
-      <!-- Section 4: Recommendations -->
+      <!-- Section 6: Recommendations -->
       <section class="section">
         <h3 class="section-header">
           RECOMMENDATIONS
@@ -211,30 +347,63 @@
             </h4>
             <div class="suggestions-content" [ngClass]="{'expanded': expandedSuggestions.recommendations}">
               <div class="suggestion-item">
-                Update shift goals
+                Update discharge plan
               </div>
               <div class="suggestion-item">
-                Document discharge planning
+                Document shift goals
+              </div>
+              <div class="suggestion-item">
+                Review care plan for the day
               </div>
             </div>
           </div>
           
-          <div class="recommendation-item">
-            <h4>Goal for the Shift</h4>
-            <p class="section-description">State shift priorities (e.g., stabilize respiratory status, manage bleeding, maintain oxygenation)</p>
-            <div [innerHTML]="patient.recommendations.shiftGoal"></div>
+          <!-- Follow-up Schedule -->
+          <div class="follow-up-schedule">
+            <h4>Follow-up Schedule</h4>
+            <div class="follow-up-detail">
+              <strong>Primary Care:</strong> {{ patient.recommendations.followUpSchedule.primaryCare }}
+            </div>
+            <div *ngIf="patient.recommendations.followUpSchedule.specialists.length > 0">
+              <strong>Specialists:</strong>
+              <ul>
+                <li *ngFor="let specialist of patient.recommendations.followUpSchedule.specialists">{{ specialist }}</li>
+              </ul>
+            </div>
           </div>
           
-          <div class="recommendation-item">
-            <h4>Plan for the Day</h4>
-            <p class="section-description">Include labs, medication plans, consults, precautions</p>
-            <div [innerHTML]="patient.recommendations.dayPlan"></div>
+          <!-- Preventive Care -->
+          <div class="preventive-care">
+            <h4>Preventive Care</h4>
+            <ul>
+              <li *ngFor="let care of patient.recommendations.preventiveCare">{{ care }}</li>
+            </ul>
           </div>
           
-          <div class="recommendation-item">
-            <h4>Discharge Plan</h4>
-            <p class="section-description">Include estimated discharge readiness, needs, follow-ups, home services</p>
-            <div [innerHTML]="patient.recommendations.dischargePlan"></div>
+          <!-- Lifestyle Recommendations -->
+          <div class="lifestyle-recommendations">
+            <h4>Lifestyle Recommendations</h4>
+            <ul>
+              <li *ngFor="let recommendation of patient.recommendations.lifestyle">{{ recommendation }}</li>
+            </ul>
+          </div>
+          
+          <!-- Original Recommendation Items (keeping for backward compatibility) -->
+          <div class="recommendation-items">
+            <div class="recommendation-item">
+              <h4>Goal for the Shift</h4>
+              <div [innerHTML]="patient.recommendations.shiftGoal"></div>
+            </div>
+            
+            <div class="recommendation-item">
+              <h4>Plan for the Day</h4>
+              <div [innerHTML]="patient.recommendations.dayPlan"></div>
+            </div>
+            
+            <div class="recommendation-item">
+              <h4>Discharge Plan</h4>
+              <div [innerHTML]="patient.recommendations.dischargePlan"></div>
+            </div>
           </div>
         </div>
       </section>
