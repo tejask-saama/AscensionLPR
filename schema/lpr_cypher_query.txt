@@ -1,0 +1,137 @@
+// Query to extract a comprehensive patient record based on the new schema
+// Parameter: $patientId - The ID of the patient to retrieve.
+MATCH (p:Patient {id: $patientId})
+
+// Collect Patient Info (Base)
+WITH p, {
+    id: p.id, gender: p.gender, city: p.city, fullName: p.fullName, birthDate: p.birthDate, state: p.state, resourceType: p.resourceType, language: p.language, maritalStatus: p.maritalStatus, lastName: p.lastName, firstName: p.firstName, age: p.age, languagePreferred: p.languagePreferred, mothersMaidenName: p.mothersMaidenName, postalCode: p.postalCode, phone: p.phone, phoneUse: p.phoneUse, addressLine: p.addressLine, maritalStatusSystem: p.maritalStatusSystem, addressUse: p.addressUse
+} AS patientInfo
+
+// Collect Encounters and their Practitioners
+WITH p, patientInfo
+OPTIONAL MATCH (p)-[:HAD_ENCOUNTER]->(e:Encounter)
+OPTIONAL MATCH (e)-[:ATTENDED_BY]->(pract_e:Practitioner)
+WITH p, patientInfo, collect(DISTINCT CASE WHEN e IS NULL THEN null ELSE {
+    id: e.id, resourceType: e.resourceType, status: e.status, start: e.start, end: e.end, type: e.type, class: e.class, durationHours: e.durationHours, durationDays: e.durationDays, typeCode: e.typeCode, typeSystem: e.typeSystem, classSystem: e.classSystem, physicalExam: e.physicalExam, diagnosis: e.diagnosis, symptoms: e.symptoms, assessment: e.assessment, plan: e.plan, hospitalCourse: e.hospitalCourse, labsSummary: e.labsSummary, imagingSummary: e.imagingSummary, dischargePlan: e.dischargePlan,
+    practitioner: CASE WHEN pract_e IS NULL THEN null ELSE { id: pract_e.id, fullName: pract_e.fullName, primarySpecialty: pract_e.primarySpecialty, gender: pract_e.gender, qualifications: pract_e.qualifications } END
+} END) AS encounters_raw
+WITH p, patientInfo, [item IN encounters_raw WHERE item IS NOT NULL | item] AS encounters
+
+
+// Collect Conditions
+WITH p, patientInfo, encounters
+OPTIONAL MATCH (p)-[:HAS_CONDITION]->(c:Condition)
+OPTIONAL MATCH (c)-[:DIAGNOSED_DURING]->(c_e:Encounter)
+WITH p, patientInfo, encounters, collect(DISTINCT CASE WHEN c IS NULL THEN null ELSE {
+    id: c.id, resourceType: c.resourceType, code: c.code, verificationStatus: c.verificationStatus, description: c.description, clinicalStatus: c.clinicalStatus, onsetDateTime: c.onsetDateTime, icd10Code: c.icd10Code, codeSystem: c.codeSystem, verificationStatusSystem: c.verificationStatusSystem, clinicalStatusSystem: c.clinicalStatusSystem, categoryCode: c.categoryCode, encounterId: c_e.id
+} END) AS conditions_raw
+WITH p, patientInfo, encounters, [item IN conditions_raw WHERE item IS NOT NULL | item] AS conditions
+
+// Collect Observations
+WITH p, patientInfo, encounters, conditions
+OPTIONAL MATCH (p)-[:HAS_OBSERVATION]->(o:Observation)
+OPTIONAL MATCH (o)-[:DURING_VISIT]->(o_e:Encounter)
+WITH p, patientInfo, encounters, conditions, collect(DISTINCT CASE WHEN o IS NULL THEN null ELSE {
+    id: o.id, resourceType: o.resourceType, code: o.code, status: o.status, unit: o.unit, effectiveDateTime: o.effectiveDateTime, value: o.value, display: o.display, valueType: o.valueType, codeSystem: o.codeSystem, unitCode: o.unitCode, unitSystem: o.unitSystem, category: o.category, valueText: o.valueText, interpretation: o.interpretation, valueDisplay: o.valueDisplay, valueCode: o.valueCode, encounterId: o_e.id
+} END) AS observations_raw
+WITH p, patientInfo, encounters, conditions, [item IN observations_raw WHERE item IS NOT NULL | item] AS observations
+
+// Collect Procedures
+WITH p, patientInfo, encounters, conditions, observations
+OPTIONAL MATCH (p)-[:UNDERWENT_PROCEDURE]->(proc:Procedure)
+OPTIONAL MATCH (proc)-[:DURING_VISIT]->(proc_e:Encounter)
+OPTIONAL MATCH (proc)-[:PERFORMED_BY]->(proc_pract:Practitioner)
+WITH p, patientInfo, encounters, conditions, observations, collect(DISTINCT CASE WHEN proc IS NULL THEN null ELSE {
+    id: proc.id, resourceType: proc.resourceType, code: proc.code, status: proc.status, performedDateTime: proc.performedDateTime, codeValue: proc.codeValue, codeSystem: proc.codeSystem, notes: proc.notes, encounterId: proc_e.id, codeValue: proc.codeValue,
+    practitioner: CASE WHEN proc_pract IS NULL THEN null ELSE { id: proc_pract.id, fullName: proc_pract.fullName, primarySpecialty: proc_pract.primarySpecialty } END
+} END) AS procedures_raw
+WITH p, patientInfo, encounters, conditions, observations, [item IN procedures_raw WHERE item IS NOT NULL | item] AS procedures
+
+// Collect Medication Statements
+WITH p, patientInfo, encounters, conditions, observations, procedures
+OPTIONAL MATCH (p)-[:TAKES_MEDICATION]->(ms:MedicationStatement)
+OPTIONAL MATCH (ms)-[:INFORMATIONSOURCE]->(ms_pract:Practitioner)
+WITH p, patientInfo, encounters, conditions, observations, procedures, collect(DISTINCT CASE WHEN ms IS NULL THEN null ELSE {
+    id: ms.id, resourceType: ms.resourceType, status: ms.status, medicationName: ms.medicationName, dosage: ms.dosage, route: ms.route, doseValue: ms.doseValue, doseUnit: ms.doseUnit, frequency: ms.frequency, dateAsserted: ms.dateAsserted, medicationCode: ms.medicationCode, medicationSystem: ms.medicationSystem, reasonForUse: ms.reasonForUse, reason: ms.reason, name: ms.name,
+    practitioner: CASE WHEN ms_pract IS NULL THEN null ELSE { id: ms_pract.id, fullName: ms_pract.fullName, primarySpecialty: ms_pract.primarySpecialty } END
+} END) AS medicationStatements_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, [item IN medicationStatements_raw WHERE item IS NOT NULL | item] AS medicationStatements
+
+// Collect Care Plans
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements
+OPTIONAL MATCH (p)-[:FOLLOWS_PLAN]->(cp:CarePlan)
+OPTIONAL MATCH (cp)-[:AUTHORED_BY]->(cp_pract:Practitioner)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, collect(DISTINCT CASE WHEN cp IS NULL THEN null ELSE {
+    id: cp.id, resourceType: cp.resourceType, status: cp.status, title: cp.title, intent: cp.intent, startDate: cp.startDate, allActivities: cp.allActivities, primaryActivity: cp.primaryActivity, primaryActivity: cp.primaryActivity, category: cp.category, description: cp.description, specialist1: cp.specialist1, specialist2: cp.specialist2, specialist3: cp.specialist3, lifestyleRecommendations: cp.lifestyleRecommendations, primaryCareFollowUp: cp.primaryCareFollowUp, cardiologyFollowUp: cp.cardiologyFollowUp, nephrologyFollowUp: cp.nephrologyFollowUp, psychiatryFollowUp: cp.psychiatryFollowUp,
+    practitioner: CASE WHEN cp_pract IS NULL THEN null ELSE { id: cp_pract.id, fullName: cp_pract.fullName, primarySpecialty: cp_pract.primarySpecialty } END
+} END) AS carePlans_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, [item IN carePlans_raw WHERE item IS NOT NULL | item] AS carePlans
+
+// Collect Clinical Notes
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans
+OPTIONAL MATCH (p)-[:HAS_CLINICAL_NOTE]->(cn:ClinicalNote)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, collect(DISTINCT CASE WHEN cn IS NULL THEN null ELSE {
+    id: cn.id, resourceType: cn.resourceType, noteDate: cn.noteDate, createdAt: cn.createdAt, noteType: cn.noteType, filename: cn.filename, patientFolder: cn.patientFolder, content: cn.content
+} END) AS clinicalNotes_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, [item IN clinicalNotes_raw WHERE item IS NOT NULL | item] AS clinicalNotes
+
+// Collect Adverse Events
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes
+OPTIONAL MATCH (p)-[:EXPERIENCED_EVENT]->(ae:AdverseEvent)
+OPTIONAL MATCH (ae)-[:DURING_VISIT]->(ae_e:Encounter)
+OPTIONAL MATCH (ae)-[:DOCUMENTED_BY]->(ae_pract:Practitioner)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, collect(DISTINCT CASE WHEN ae IS NULL THEN null ELSE {
+    id: ae.id, resourceType: ae.resourceType, description: ae.description, outcome: ae.outcome, eventDate: ae.eventDate, actuality: ae.actuality, encounterId: ae_e.id, practitioner: CASE WHEN ae_pract IS NULL THEN null ELSE { id: ae_pract.id, fullName: ae_pract.fullName, primarySpecialty: ae_pract.primarySpecialty } END
+} END) AS adverseEvents_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, [item IN adverseEvents_raw WHERE item IS NOT NULL | item] AS adverseEvents
+
+// Collect Medication Administrations
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents
+OPTIONAL MATCH (p)-[:RECEIVED_DOSE]->(ma:MedicationAdministration)
+OPTIONAL MATCH (ma)-[:CONTEXT]->(ma_e:Encounter)
+OPTIONAL MATCH (ma)-[:ADMINISTERED_BY]->(ma_pract:Practitioner)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, collect(DISTINCT CASE WHEN ma IS NULL THEN null ELSE {
+    id: ma.id, resourceType: ma.resourceType, status: ma.status, effectiveDateTime: ma.effectiveDateTime, medicationName: ma.medicationName, route: ma.route, doseValue: ma.doseValue, dosageText: ma.dosageText, doseUnit: ma.doseUnit, medicationCode: ma.medicationCode, medicationSystem: ma.medicationSystem, encounterId: ma_e.id, practitioner: CASE WHEN ma_pract IS NULL THEN null ELSE { id: ma_pract.id, fullName: ma_pract.fullName, primarySpecialty: ma_pract.primarySpecialty } END
+} END) AS medicationAdministrations_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, [item IN medicationAdministrations_raw WHERE item IS NOT NULL | item] AS medicationAdministrations
+
+// Collect Allergies
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations
+OPTIONAL MATCH (p)-[:HAS_ALLERGY]->(al:AllergyIntolerance)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, collect(DISTINCT CASE WHEN al IS NULL THEN null ELSE {
+    id: al.id, resourceType: al.resourceType, verificationStatus: al.verificationStatus, clinicalStatus: al.clinicalStatus, category: al.category, criticality: al.criticality, type: al.type, recordedDate: al.recordedDate, substance: al.substance, reaction: al.reaction, severity: al.severity
+} END) AS allergies_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, [item IN allergies_raw WHERE item IS NOT NULL | item] AS allergies
+
+// Collect Immunizations
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies
+OPTIONAL MATCH (p)-[:RECEIVED_VACCINE]->(im:Immunization)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies, collect(DISTINCT CASE WHEN im IS NULL THEN null ELSE {
+    id: im.id, resourceType: im.resourceType, status: im.status, date: im.date, primarySource: im.primarySource, lotNumber: im.lotNumber, vaccineDisplay: im.vaccineDisplay, vaccineSystem: im.vaccineSystem, vaccineCoding: im.vaccineCoding
+} END) AS immunizations_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies, [item IN immunizations_raw WHERE item IS NOT NULL | item] AS immunizations
+
+// Collect Goals
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies, immunizations
+OPTIONAL MATCH (p)-[:WORKING_TOWARD]->(g:Goal)
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies, immunizations, collect(DISTINCT CASE WHEN g IS NULL THEN null ELSE {
+    id: g.id, resourceType: g.resourceType, description: g.description, lifecycleStatus: g.lifecycleStatus, achievementStatus: g.achievementStatus, priority: g.priority, startDate: g.startDate, targetDate: g.targetDate, category: g.category
+} END) AS goals_raw
+WITH p, patientInfo, encounters, conditions, observations, procedures, medicationStatements, carePlans, clinicalNotes, adverseEvents, medicationAdministrations, allergies, immunizations, [item IN goals_raw WHERE item IS NOT NULL | item] AS goals
+
+// Return Everything in a structured format
+RETURN {
+    patient: patientInfo,
+    encounters: encounters,
+    conditions: conditions,
+    observations: observations,
+    procedures: procedures,
+    medicationStatements: medicationStatements,
+    carePlans: carePlans,
+    clinicalNotes: clinicalNotes,
+    adverseEvents: adverseEvents,
+    medicationAdministrations: medicationAdministrations,
+    allergies: allergies,
+    immunizations: immunizations,
+    goals: goals
+} AS patient_comprehensive_data

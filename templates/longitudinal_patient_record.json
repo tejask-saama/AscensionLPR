@@ -1,0 +1,122 @@
+{
+  "_template_note": "This template provides structure only. Include ALL available data for each section.",
+  "patientInformation": {
+      "fullName": "",
+      "dob": "",
+      "age": null,
+      "sex": "",
+      "mrnId": ""
+  },
+  "background": {
+      "pastMedicalHistory": [
+          {
+              "_note": "Include ALL past medical conditions",
+              "condition": "",
+              "diagnosedDate": ""
+          }
+      ],
+      "allergies": [
+          {
+              "_note": "Include ALL known allergies",
+              "allergen": "",
+              "onsetDate": "",
+              "status": ""
+          }
+      ],
+      "immunizations": [
+          {
+              "_note": "Include ALL immunization records",
+              "vaccine": "",
+              "administeredDate": ""
+          }
+      ],
+      "medicationHistory": [
+          {
+              "_note": "Include ALL past medications",
+              "medication": "",
+              "reasonForUse": ""
+          }
+      ]
+  },
+  "chronologicalMedicalTimeline": [
+      {
+          "_note": "Include ALL encounters in chronological order",
+          "visitDate": "",
+          "visitType": "",
+          "encounterId": "",
+          "vitalSigns": "",
+          "symptoms": "",
+          "physicalExam": "",
+          "diagnosis": "",
+          "procedures": "",
+          "assessment": "",
+          "plan": "",
+          "hospitalCourse": "",
+          "labs": {},
+          "imaging": "",
+          "dischargePlan": ""
+      }
+  ],
+  "currentCarePlan": {
+      "activeCarePlan": {
+          "title": "",
+          "description": "",
+          "status": ""
+      },
+      "currentGoals": [
+          {
+              "_note": "Include ALL current goals",
+              "goal": "",
+              "startDate": "",
+              "targetDate": "",
+              "status": ""
+          }
+      ],
+      "recentVitalSigns": {
+          "bp": "",
+          "temperature": "",
+          "respiratoryRate": ""
+      },
+      "currentMedications": [
+          {
+              "_note": "Include ALL current medications",
+              "medication": "",
+              "purpose": ""
+          }
+      ]
+  },
+  "riskAssessment": {
+      "cardiovascularRisk": [
+          {
+              "_note": "Include ALL cardiovascular risk factors",
+              "riskFactor": ""
+          }
+      ],
+      "conditionSpecificComplications": [
+          {
+              "_note": "Include ALL condition-specific complications",
+              "complication": ""
+          }
+      ],
+      "fallRisk": {
+          "riskFactors": "",
+          "recommendations": ""
+      }
+  },
+  "recommendations": {
+      "followUpSchedule": {
+          "primaryCare": "",
+          "specialist1": "",
+          "specialist2": "",
+          "specialist3": ""
+      },
+      "preventiveCare": [
+          {
+              "type": "",
+              "details": ""
+          }
+      ],
+      "lifestyleRecommendations": []
+  },
+  "notes": "This longitudinal record was generated from structured electronic health record data. It represents a chronological summary of the patient's medical history based on documented encounters, conditions, medications, and observations. The record should be verified against the complete medical chart before clinical use."
+}

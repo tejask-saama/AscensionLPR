@@ -1,0 +1,265 @@
+nodes:
+  AdverseEvent:
+  - id
+  - resourceType
+  - actuality
+  - eventDate
+  - description
+  - outcome
+  AllergyIntolerance:
+  - id
+  - type
+  - category
+  - resourceType
+  - clinicalStatus
+  - verificationStatus
+  - criticality
+  - recordedDate
+  - substance
+  CarePlan:
+  - id
+  - status
+  - resourceType
+  - allActivities
+  - intent
+  - primaryActivity
+  - startDate
+  - title
+  ClinicalNote:
+  - id
+  - noteDate
+  - resourceType
+  - content
+  - createdAt
+  - filename
+  - noteType
+  - patientFolder
+  Condition:
+  - id
+  - code
+  - description
+  - resourceType
+  - categoryCode
+  - clinicalStatus
+  - clinicalStatusSystem
+  - codeSystem
+  - icd10Code
+  - onsetDateTime
+  - verificationStatus
+  - verificationStatusSystem
+  Encounter:
+  - id
+  - class
+  - end
+  - start
+  - type
+  - status
+  - resourceType
+  - classSystem
+  - durationDays
+  - durationHours
+  - typeCode
+  - typeSystem
+  Goal:
+  - id
+  - description
+  - resourceType
+  - lifecycleStatus
+  Immunization:
+  - id
+  - status
+  - date
+  - resourceType
+  - lotNumber
+  - primarySource
+  - vaccineCoding
+  - vaccineDisplay
+  - vaccineSystem
+  LPRCache:
+  - name: id
+    required: true
+    type: string
+  - name: patient_id
+    required: true
+    type: string
+  - name: timestamp
+    required: true
+    type: datetime
+  - name: lpr_data
+    required: true
+    type: string
+  - name: metadata
+    required: true
+    type: string
+  Location: []
+  Medication: []
+  MedicationAdministration:
+  - id
+  - status
+  - resourceType
+  - effectiveDateTime
+  - medicationCode
+  - medicationSystem
+  - dosageText
+  - doseUnit
+  - doseValue
+  - route
+  - medicationName
+  MedicationStatement:
+  - id
+  - status
+  - resourceType
+  - dateAsserted
+  - medicationCode
+  - medicationSystem
+  - route
+  - medicationName
+  - doseUnit
+  - doseValue
+  - dosage
+  - frequency
+  Observation:
+  - id
+  - code
+  - status
+  - category
+  - display
+  - resourceType
+  - codeSystem
+  - effectiveDateTime
+  - unit
+  - value
+  - valueType
+  - valueCode
+  - valueDisplay
+  - unitCode
+  - unitSystem
+  - interpretation
+  - valueText
+  Patient:
+  - id
+  - gender
+  - fullName
+  - addressLine
+  - addressUse
+  - age
+  - birthDate
+  - city
+  - firstName
+  - lastName
+  - maritalStatus
+  - maritalStatusSystem
+  - phone
+  - phoneUse
+  - postalCode
+  - resourceType
+  - state
+  - language
+  - languagePreferred
+  - mothersMaidenName
+  - lastModified
+  - country
+  Practitioner:
+  - id
+  - gender
+  - fullName
+  - firstName
+  - lastName
+  - resourceType
+  - use
+  - primarySpecialty
+  - qualifications
+  Procedure:
+  - id
+  - code
+  - status
+  - performedDateTime
+  - resourceType
+  - codeSystem
+  - codeValue
+  - notes
+  Provider: []
+relationships:
+- source: Patient
+  target: Encounter
+  type: HAD_ENCOUNTER
+- source: Patient
+  target: Condition
+  type: HAS_CONDITION
+- source: Patient
+  target: ClinicalNote
+  type: HAS_CLINICAL_NOTE
+- source: Patient
+  target: AllergyIntolerance
+  type: HAS_ALLERGY
+- source: Patient
+  target: AdverseEvent
+  type: EXPERIENCED_EVENT
+- source: Patient
+  target: MedicationStatement
+  type: TAKES_MEDICATION
+- source: Patient
+  target: MedicationAdministration
+  type: RECEIVED_DOSE
+- source: Patient
+  target: Procedure
+  type: UNDERWENT_PROCEDURE
+- source: Patient
+  target: CarePlan
+  type: FOLLOWS_PLAN
+- source: Patient
+  target: Immunization
+  type: RECEIVED_VACCINE
+- source: Patient
+  target: Observation
+  type: HAS_OBSERVATION
+- source: Patient
+  target: Goal
+  type: WORKING_TOWARD
+- source: Encounter
+  target: Practitioner
+  type: ATTENDED_BY
+- source: Observation
+  target: Encounter
+  type: DURING_VISIT
+- source: CarePlan
+  target: Practitioner
+  type: AUTHORED_BY
+- source: AdverseEvent
+  target: Encounter
+  type: DURING_VISIT
+- source: Procedure
+  target: Encounter
+  type: DURING_VISIT
+- source: Condition
+  target: Encounter
+  type: DIAGNOSED_DURING
+- source: AdverseEvent
+  target: Practitioner
+  type: DOCUMENTED_BY
+- source: MedicationStatement
+  target: Practitioner
+  type: INFORMATIONSOURCE
+- source: MedicationAdministration
+  target: Encounter
+  type: CONTEXT
+- source: MedicationAdministration
+  target: Practitioner
+  type: ADMINISTERED_BY
+- source: Procedure
+  target: Practitioner
+  type: PERFORMED_BY
+- source: MedicationAdministration
+  target: Practitioner
+  type: ACTOR
+- source: Procedure
+  target: Practitioner
+  type: ACTOR
+- properties:
+  - name: created_at
+    required: true
+    type: datetime
+  source: Patient
+  target: LPRCache
+  type: HAS_LPR_CACHE
+timestamp: '2025-06-16T03:02:53.221413'

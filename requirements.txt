@@ -1,0 +1,16 @@
+flask==2.3.3
+flask-cors==4.0.0
+python-dotenv==1.0.0
+streamlit==1.46.1
+pyyaml==6.0.1
+python-dotenv==1.0.0
+langchain-neo4j==0.3.0
+langchain-openai==0.3.28
+langchain==0.3.26
+neo4j==5.28.1
+#fpdf
+uvicorn==0.35.0
+PyYAML==6.0.1
+fastapi==0.116.1
+## Updated 
+json5==0.12.0

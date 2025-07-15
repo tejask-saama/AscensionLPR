@@ -1,127 +1,96 @@
-# Longitudinal Patient Record
+# Patient Query API
 
-A web-based application for nurses to manage patient handoffs, view patient details, and use a smart assistant for clinical questions.
+This API accepts patient queries, analyzes the intent, retrieves relevant patient data from a Knowledge Graph, and generates structured responses using Azure OpenAI.
 
 ## Features
 
-- Login screen with dummy credentials (user/user)
-- Patient list with 5 sample patients
-- Detailed patient view with:
-  - Background information
-  - Assessment data
-  - Recommendations
-  - Nurses' notes
-- Smart Assistant for asking clinical questions about patients
-- API integration for LPR (Longitudinal Patient Record) data
-- API integration for clinical questions
+- Query intent classification using Azure OpenAI
+- Template-based response generation based on intent type
+- Knowledge Graph integration for comprehensive patient data access
+- Structured API responses with clinical reasoning, recommendations, and provenance
 
-## Project Structure
+## Setup
+
+1. Configure environment variables in `.env`:
 
 ```
-ascension-frontend/
-├── src/
-│   ├── app/
-│   │   ├── components/
-│   │   │   ├── login/
-│   │   │   ├── patient-list/
-│   │   │   ├── patient-detail/
-│   │   │   └── smart-assistant/
-│   │   ├── services/
-│   │   ├── models/
-│   │   ├── app.component.ts
-│   │   ├── app.component.html
-│   │   ├── app.component.scss
-│   │   ├── app.module.ts
-│   │   └── app-routing.module.ts
-│   ├── assets/
-│   │   ├── images/
-│   │   └── icons/
-│   ├── environments/
-│   ├── index.html
-│   ├── main.ts
-│   ├── polyfills.ts
-│   └── styles.scss
-├── angular.json
-├── package.json
-├── server.js
-└── tsconfig.json
+# Neo4j Knowledge Graph Connection
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+
+# Azure OpenAI Configuration
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com
+AZURE_OPENAI_API_VERSION=2023-05-15
+AZURE_OPENAI_DEPLOYMENT=gpt-4
 ```
 
-## Getting Started
+2. Install dependencies:
 
-### Prerequisites
+```bash
+pip install -r requirements.txt
+```
 
-- Node.js (v16 or higher)
-- npm (comes with Node.js)
+3. Run the API server:
 
-### Installation
+```bash
+python main.py
+```
 
-1. Set up the project (install dependencies and build):
-   ```
-   npm run full-setup
-   ```
+## API Usage
 
-   Or install dependencies only:
-   ```
-   npm run setup
-   ```
+### Patient Query Endpoint
 
-2. Build the Angular application:
-   ```
-   npm run build
-   ```
+**Endpoint**: `POST /api/patient/query`
 
-3. Start the server:
-   ```
-   npm start
-   ```
+**Request Body**:
+```json
+{
+    "query": "What medications is this patient taking?",
+    "patient_id": "PT123456"
+}
+```
 
-4. Or build and start in one command:
-   ```
-   npm run build-and-start
-   ```
+**Response**:
+```json
+{
+    "response": "Patient John Doe is currently taking...",
+    "clinical_reasoning": "The patient has been prescribed...",
+    "recommendations": ["Consider follow-up in 3 months"],
+    "provenance": ["Medication history from records dated 2023-02-15"],
+    "limitations": ["Medication adherence data not available"],
+    "metadata": {
+        "intent": "MEDICATIONS",
+        "generation_time": 1.25
+    }
+}
+```
 
-4. Open your browser and navigate to:
-   ```
-   http://localhost:3009
-   ```
+## Query Intent Types
 
-5. Login with the following credentials:
-   - Username: user
-   - Password: user
+The API supports the following query intents:
 
-## Usage
+1. `CLINICAL_SUMMARY` - Overall patient health summary
+2. `MEDICATIONS` - Current and past medications
+3. `LAB_RESULTS` - Laboratory test results
+4. `VITALS` - Vital signs like blood pressure, heart rate
+5. `PROCEDURES` - Medical procedures and imaging
+6. `FOLLOW_UPS` - Recommended follow-up actions
+7. `TREATMENT_RECOMMENDATIONS` - Treatment plan recommendations
 
-1. After logging in, you'll see a list of patients.
-2. Click on a patient (preferably "Adams, Joey" for the full demo) to view their details.
-3. Use the Smart Assistant in the top right corner to ask clinical questions about the selected patient.
+## Architecture
 
-## API Integration
+- `app.py`: FastAPI application and API endpoint definitions
+- `services/query_processor.py`: Orchestrates the entire workflow
+- `services/llm_service.py`: Azure OpenAI integration for intent detection and response generation
+- `services/knowledge_graph.py`: Neo4j knowledge graph integration for patient data retrieval
+- `templates/`: Response templates for different query intents
 
-This application integrates with the Archive project's Longitudinal Patient Record (LPR) API. The API server must be running for the application to function properly.
+## Testing
 
-### API Endpoints
+Run unit tests:
 
-- `/api/lpr-app/patients` - Get list of all patients
-- `/api/lpr-app/lpr/{patient_id}` - Get detailed patient information
-- `/api/lpr-app/lpr` - Submit clinical questions (POST)
-
-### Running the API Server
-
-1. Navigate to the Archive project directory:
-   ```
-   cd /path/to/Archive
-   ```
-
-2. Activate the virtual environment:
-   ```
-   source venv/bin/activate
-   ```
-
-3. Start the API server:
-   ```
-   python -m api.lpr_app_api_fixed
-   ```
-
-4. The API server will run on port 5002 by default.
-
+```bash
+python -m unittest discover
+```
